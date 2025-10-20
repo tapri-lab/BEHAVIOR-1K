@@ -263,8 +263,12 @@ def _launch_app():
         elif gm.REMOTE_STREAMING == "webrtc":
             # Enable WebRTC Livestream extension
             app.set_setting("/exts/omni.services.transport.server.http/port", gm.HTTP_PORT)
-            app.set_setting("/app/livestream/port", gm.WEBRTC_PORT)
-            lazy.isaacsim.core.utils.extensions.enable_extension("omni.services.streamclient.webrtc")
+            app.set_setting("/exts/omni.kit.livestream.app/primaryStream/streamType", "webrtc")
+            app.set_setting("/exts/omni.kit.livestream.app/primaryStream/signalPort", gm.WEBRTC_PORT)
+            lazy.isaacsim.core.utils.extensions.enable_extension("omni.kit.livestream.webrtc")
+
+            #app.set_setting("/app/livestream/port", gm.WEBRTC_PORT)
+            #lazy.isaacsim.core.utils.extensions.enable_extension("omni.services.streamclient.webrtc")
             print(f"Now streaming on: http://{ip}:{gm.HTTP_PORT}/streaming/webrtc-client?server={ip}")
         else:
             raise ValueError(

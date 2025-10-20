@@ -12,7 +12,7 @@ PRIMITIVES=false
 EVAL=false
 ASSET_PIPELINE=false
 DEV=false
-CUDA_VERSION="12.4"
+CUDA_VERSION="12.8"
 ACCEPT_CONDA_TOS=false
 ACCEPT_NVIDIA_EULA=false
 ACCEPT_DATASET_TOS=false
@@ -228,7 +228,7 @@ if [ "$NEW_ENV" = true ]; then
     # Determine the CUDA version string for pip URL (e.g., cu126, cu124, etc.)
     CUDA_VER_SHORT=$(echo $CUDA_VERSION | sed 's/\.//g')  # e.g. convert 12.6 to 126
     
-    pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu${CUDA_VER_SHORT}
+    pip install torch==2.7.1 torchvision torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu${CUDA_VER_SHORT}
     echo "✓ PyTorch installation completed"
 fi
 # Install BDDL
