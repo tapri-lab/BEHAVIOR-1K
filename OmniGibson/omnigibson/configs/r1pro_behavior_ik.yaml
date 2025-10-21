@@ -71,18 +71,12 @@ robots:
         use_delta_commands: false
       arm_left:
         name: OperationalSpaceController
-        motor_type: effort
-        command_input_limits: default
-        command_output_limits: default
-        use_impedances: true
-        use_delta_commands: true
+        command_input_limits: null
+        mode: pose_delta_ori
       arm_right:
         name: OperationalSpaceController
-        motor_type: effort
-        command_input_limits: default
-        command_output_limits: default
-        use_impedances: true
-        use_delta_commands: true
+        command_input_limits: null
+        mode: pose_delta_ori
       gripper_left:
         name: MultiFingerGripperController
         mode: smooth
