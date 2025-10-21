@@ -18,3 +18,38 @@ action_key_dims:
   right_arm: 7
   right_gripper: 1
 controllers:  # Can be overwritten by policy
+  base:
+    name: HolonomicBaseJointController
+    motor_type: velocity
+    vel_kp: 150
+    command_input_limits: default
+    command_output_limits: default
+    use_impedances: false
+  trunk:
+    name: JointController
+    motor_type: position
+    pos_kp: 150
+    command_input_limits: default
+    command_output_limits: default
+    use_impedances: false
+    use_delta_commands: false
+  arm_left:
+    name: OperationalSpaceController
+    motor_type: effort
+    command_input_limits: null
+    mode: pose_delta_ori
+  arm_right:
+    name: OperationalSpaceController
+    motor_type: effort
+    command_input_limits: null
+    mode: pose_delta_ori
+  gripper_left:
+    name: MultiFingerGripperController
+    mode: smooth
+    command_input_limits: default
+    command_output_limits: default
+  gripper_right:
+    name: MultiFingerGripperController
+    mode: smooth
+    command_input_limits: default
+    command_output_limits: default
