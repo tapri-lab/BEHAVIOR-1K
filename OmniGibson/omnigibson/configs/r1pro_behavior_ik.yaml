@@ -31,7 +31,8 @@ scene:
   num_waypoints: 1
   waypoint_resolution: 0.2
   not_load_object_categories: null
-  load_room_types: ["living_room", "kitchen"]
+  #load_room_types: ["living_room", "kitchen"]
+  #load_room_types: ["living_room", "kitchen"]
   load_room_instances: null
   seg_map_resolution: 1.0
   scene_source: OG
@@ -71,12 +72,20 @@ robots:
         use_delta_commands: false
       arm_left:
         name: OperationalSpaceController
-        command_input_limits: null
+        command_input_limits: default
+        command_output_limits:
+          - [-0.2, -0.2, -0.2, -0.5, -0.5, -0.5]
+          - [0.2, 0.2, 0.2, 0.5, 0.5, 0.5]
         mode: pose_delta_ori
+        workspace_pose_limiter: null
       arm_right:
         name: OperationalSpaceController
-        command_input_limits: null
+        command_input_limits: default
+        command_output_limits:
+          - [-0.2, -0.2, -0.2, -0.5, -0.5, -0.5]
+          - [0.2, 0.2, 0.2, 0.5, 0.5, 0.5]
         mode: pose_delta_ori
+        workspace_pose_limiter: null
       gripper_left:
         name: MultiFingerGripperController
         mode: smooth
