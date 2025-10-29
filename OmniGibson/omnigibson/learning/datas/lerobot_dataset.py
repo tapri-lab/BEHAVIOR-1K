@@ -194,6 +194,77 @@ class BehaviorLeRobotDataset(LeRobotDataset):
             self.download_episodes(download_videos)
             self.hf_dataset = self.load_hf_dataset()
 
+
+        # def quaternion_multiply(q1, q2):
+        #     """Multiply two quaternions q1 * q2"""
+        #     x1, y1, z1, w1 = q1
+        #     x2, y2, z2, w2 = q2
+        #     w = w1*w2 - x1*x2 - y1*y2 - z1*z2
+        #     x = w1*x2 + x1*w2 + y1*z2 - z1*y2
+        #     y = w1*y2 - x1*z2 + y1*w2 + z1*x2
+        #     z = w1*z2 + x1*y2 - y1*x2 + z1*w2
+        #     return np.array([w, x, y, z])
+
+        # def angular_velocity_from_quaternions(q1, q2, dt):
+        #     """
+        #     Compute angular velocity vector (in body frame) from two quaternions q1, q2
+        #     and time step dt.
+        #     """
+        #     q1_inv = q1 * np.array([-1, -1, -1, 1])
+        #     q_delta = quaternion_multiply(q2, q1_inv)
+
+        #     w, x, y, z = q_delta
+        #     angle = 2 * np.arccos(np.clip(w, -1.0, 1.0))
+        #     s = np.sqrt(1 - w*w)
+        #     if s < 1e-8:  # avoid division by zero for small angles
+        #         axis = np.array([1, 0, 0])  # arbitrary axis
+        #     else:
+        #         axis = np.array([x, y, z]) / s
+        #     omega = (angle / dt) * axis
+        #     return omega
+
+        # def repack_action(action, obs, next_obs, delta_t):
+        #     from omnigibson.learning.utils.eval_utils import PROPRIOCEPTION_INDICES, ACTION_QPOS_INDICES
+
+        #     eef_left_lin_vel = (next_obs[..., PROPRIOCEPTION_INDICES["R1Pro"]["eef_left_pos"]] - obs[..., PROPRIOCEPTION_INDICES["R1Pro"]["eef_left_pos"]]) / delta_t
+        #     eef_right_lin_vel = (next_obs[..., PROPRIOCEPTION_INDICES["R1Pro"]["eef_right_pos"]] - obs[..., PROPRIOCEPTION_INDICES["R1Pro"]["eef_right_pos"]]) / delta_t
+        #     eef_left_ang_vel = angular_velocity_from_quaternions(next_obs[..., PROPRIOCEPTION_INDICES["R1Pro"]["eef_right_quat"]],
+        #                                                             obs[..., PROPRIOCEPTION_INDICES["R1Pro"]["eef_right_quat"]],
+        #                                                             delta_t)
+        #     eef_right_ang_vel = angular_velocity_from_quaternions(next_obs[..., PROPRIOCEPTION_INDICES["R1Pro"]["eef_right_quat"]],
+        #                                                             obs[..., PROPRIOCEPTION_INDICES["R1Pro"]["eef_right_quat"]],
+        #                                                             delta_t)
+        #     return np.concatenate([
+        #         action[..., ACTION_QPOS_INDICES["R1Pro"]["base"]],
+        #         action[..., ACTION_QPOS_INDICES["R1Pro"]["torso"]],
+        #         eef_left_lin_vel,
+        #         eef_left_ang_vel,
+        #         action[..., ACTION_QPOS_INDICES["R1Pro"]["left_gripper"]],
+        #         eef_right_lin_vel,
+        #         eef_right_ang_vel,
+        #         action[..., ACTION_QPOS_INDICES["R1Pro"]["right_gripper"]],
+        #         np.zeros((1)),
+        #         np.zeros((1)),
+        #     ], axis=-1)
+
+        # def modify_action(example, idx):
+        #     # Handle last sample
+        #     if idx == len(self.hf_dataset) - 1:
+        #         next_state = example["observation.state"]
+        #         delta_t = 0
+        #     else:
+        #         next_state = self.hf_dataset[idx + 1]["observation.state"]
+        #         delta_t = self.hf_dataset[idx + 1]["timestamp"] - example["timestamp"]
+
+        #     example["action"] = repack_action(
+        #         example["action"],
+        #         example["observation.state"],
+        #         next_state,
+        #         delta_t,
+        #     )
+        #     return example
+        # self.hf_dataset = self.hf_dataset.map(modify_action, with_indices=True)
+
         self.episode_data_index = get_episode_data_index(self.meta.episodes, self.episodes)
 
         # Check timestamps

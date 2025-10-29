@@ -1,0 +1,53 @@
+type: R1Pro
+multi_view_cameras:
+  left_wrist: 
+    name: robot_r1::robot_r1:left_realsense_link:Camera:0
+    resolution: [240, 240]
+  right_wrist: 
+    name: robot_r1::robot_r1:right_realsense_link:Camera:0
+    resolution: [240, 240]
+  head: 
+    name: robot_r1::robot_r1:zed_link:Camera:0
+    resolution: [240, 240]
+action_keys: [base, torso, left_arm, left_gripper, right_arm, right_gripper]
+action_key_dims:
+  base: 3
+  torso: 4
+  left_arm: 6
+  left_gripper: 1
+  right_arm: 6
+  right_gripper: 1
+controllers:  # Can be overwritten by policy
+  base:
+    name: HolonomicBaseJointController
+    motor_type: velocity
+    vel_kp: 150
+    command_input_limits: default
+    command_output_limits: default
+    use_impedances: false
+  trunk:
+    name: JointController
+    motor_type: position
+    pos_kp: 150
+    command_input_limits: default
+    command_output_limits: default
+    use_impedances: false
+    use_delta_commands: false
+  arm_left:
+    name: InverseKinematicsController
+    command_input_limits: null
+    mode: pose_delta_ori
+  arm_right:
+    name: InverseKinematicsController
+    command_input_limits: null
+    mode: pose_delta_ori
+  gripper_left:
+    name: MultiFingerGripperController
+    mode: smooth
+    command_input_limits: default
+    command_output_limits: default
+  gripper_right:
+    name: MultiFingerGripperController
+    mode: smooth
+    command_input_limits: default
+    command_output_limits: default

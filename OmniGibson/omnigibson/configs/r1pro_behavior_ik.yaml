@@ -71,21 +71,11 @@ robots:
         use_impedances: false
         use_delta_commands: false
       arm_left:
-        name: OperationalSpaceController
-        command_input_limits: default
-        command_output_limits:
-          - [-0.2, -0.2, -0.2, -0.5, -0.5, -0.5]
-          - [0.2, 0.2, 0.2, 0.5, 0.5, 0.5]
-        mode: pose_delta_ori
-        workspace_pose_limiter: null
+        name: InverseKinematicsController
+        mode: pose_absolute_ori
       arm_right:
-        name: OperationalSpaceController
-        command_input_limits: default
-        command_output_limits:
-          - [-0.2, -0.2, -0.2, -0.5, -0.5, -0.5]
-          - [0.2, 0.2, 0.2, 0.5, 0.5, 0.5]
-        mode: pose_delta_ori
-        workspace_pose_limiter: null
+        name: InverseKinematicsController
+        mode: pose_absolute_ori
       gripper_left:
         name: MultiFingerGripperController
         mode: smooth
