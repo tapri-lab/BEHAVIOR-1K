@@ -72,10 +72,8 @@ robots:
         use_delta_commands: false
       arm_left:
         name: InverseKinematicsController
-        mode: pose_absolute_ori
       arm_right:
         name: InverseKinematicsController
-        mode: pose_absolute_ori
       gripper_left:
         name: MultiFingerGripperController
         mode: smooth

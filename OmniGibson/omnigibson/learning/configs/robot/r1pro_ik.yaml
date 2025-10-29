@@ -35,12 +35,8 @@ controllers:  # Can be overwritten by policy
     use_delta_commands: false
   arm_left:
     name: InverseKinematicsController
-    command_input_limits: null
-    mode: pose_delta_ori
   arm_right:
     name: InverseKinematicsController
-    command_input_limits: null
-    mode: pose_delta_ori
   gripper_left:
     name: MultiFingerGripperController
     mode: smooth
