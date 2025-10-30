@@ -40,6 +40,7 @@ from omnigibson.utils.python_utils import recursively_convert_to_torch
 from pathlib import Path
 from signal import signal, SIGINT
 from typing import Any, Tuple, List
+from omnigibson.robots.r1pro import R1Pro
 
 m = create_module_macros(module_path=__file__)
 m.NUM_EVAL_EPISODES = 1
@@ -184,6 +185,22 @@ class Evaluator:
             6. Returns the termination and truncation status.
         """
         self.robot_action = self.policy.forward(obs=self.obs)
+        
+        if isinstance(self.robot, R1Pro): 
+            jacobians = self.robot.arm_jacobians
+            movability = self.robot.arm_movability
+            if movability and jacobians:
+                # TODO: Set good threshold for singularity
+                if movability["left"] < 0.05:
+                    logger.warning(f"Left arm near singularity at step {self.env._current_step}, zeroing action.")
+                    self.robot_action[7:13] *= 0.
+                if movability["right"] < 0.05:
+                    logger.warning(f"Right arm near singularity at step {self.env._current_step}, zeroing action.")
+                    self.robot_action[14:20] *= 0.
+
+
+        # with open('action.csv', 'ab') as f:
+        #     np.savetxt(f, self.robot_action, delimiter=',', fmt='%.6f')
 
         obs, _, terminated, truncated, info = self.env.step(self.robot_action, n_render_iterations=1)
         # process obs
@@ -193,6 +210,8 @@ class Evaluator:
             self.n_trials += 1
             if info["done"]["success"]:
                 self.n_success_trials += 1
+            # with open('action.csv', 'ab') as f:
+            #     np.savetxt(f, self.robot_action * 100., delimiter=',', fmt='%.6f')
 
         for metric in self.metrics:
             metric.step_callback(self.env)

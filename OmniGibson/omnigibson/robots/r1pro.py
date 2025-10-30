@@ -11,6 +11,31 @@ class R1Pro(R1):
     """
 
     @property
+    def arm_jacobians(self):
+        """Returns the 6xN Jacobian for a given arm's end-effector."""
+        jac_full = self.get_jacobian()
+        link_names = list(self.links.keys())
+        joint_names = list(self.joints.keys())
+        jacs = {}
+        for arm in self.arm_names:
+            ee_idx = link_names.index(self.eef_link_names[arm])
+            arm_joint_indices = [i for i, name in enumerate(joint_names) if name in self.arm_joint_names[arm]]
+            jacs[arm] = jac_full[ee_idx][:, arm_joint_indices]
+        return jacs
+
+    @property
+    def arm_movability(self):
+        """
+        Compute Yoshikawa manipulability for a redundant arm
+        J: 6 x N (e.g., 6x7)
+        """
+        jacs = self.arm_jacobians
+        w = {}
+        for arm in self.arm_names:
+            s = th.linalg.svdvals(jacs[arm])
+            w[arm] = th.prod(s[:6]) # TODO: Are only the first six relevant for xyz, ang xyz?        return w
+
+    @property
     def tucked_default_joint_pos(self):
         pos = th.zeros(self.n_dof)
         # Keep the current joint positions for the base joints
