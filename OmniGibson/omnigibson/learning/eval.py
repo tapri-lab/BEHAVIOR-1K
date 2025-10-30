@@ -191,12 +191,12 @@ class Evaluator:
             movability = self.robot.arm_movability
             if movability and jacobians:
                 # TODO: Set good threshold for singularity
-                if movability["left"] < 0.05:
+                if movability["left"] > 0.05:
                     logger.warning(f"Left arm near singularity at step {self.env._current_step}, zeroing action.")
-                    self.robot_action[7:13] *= 0.
-                if movability["right"] < 0.05:
+                    self.robot_action[7:13] *= (movability["left"] > 0.05).astype(float)
+                if movability["right"] > 0.05:
                     logger.warning(f"Right arm near singularity at step {self.env._current_step}, zeroing action.")
-                    self.robot_action[14:20] *= 0.
+                    self.robot_action[14:20] *= (movability["right"] > 0.05).astype(float)
 
 
         # with open('action.csv', 'ab') as f:
