@@ -17,6 +17,7 @@ ACCEPT_CONDA_TOS=false
 ACCEPT_NVIDIA_EULA=false
 ACCEPT_DATASET_TOS=false
 CONFIRM_NO_CONDA=false
+ENV_NAME="behavior_python311"
 
 [ "$#" -eq 0 ] && HELP=true
 
@@ -191,7 +192,7 @@ prompt_for_terms
 
 # Create conda environment
 if [ "$NEW_ENV" = true ]; then
-    echo "Creating conda environment 'behavior'..."
+    echo "Creating conda environment '$ENV_NAME'..."
     command -v conda >/dev/null || { echo "ERROR: Conda not found"; exit 1; }
     
     # Set auto-accept environment variable if user agreed to TOS
@@ -203,9 +204,9 @@ if [ "$NEW_ENV" = true ]; then
     source "$(conda info --base)/etc/profile.d/conda.sh"
     
     # Check if environment already exists and exit with instructions
-    if conda env list | grep -q "^behavior "; then
+    if conda env list | grep -q "^$ENV_NAME "; then
         echo ""
-        echo "ERROR: Conda environment 'behavior' already exists!"
+        echo "ERROR: Conda environment '$ENV_NAME' already exists!"
         echo ""
         echo "Please remove or rename the existing environment and re-run this script."
         echo ""
@@ -213,10 +214,10 @@ if [ "$NEW_ENV" = true ]; then
     fi
     
     # Create environment with only Python 3.10
-    conda create -n behavior python=3.10 -c conda-forge -y
-    conda activate behavior
+    conda create -n $ENV_NAME python=3.11 -c conda-forge -y
+    conda activate $ENV_NAME
     
-    [[ "$CONDA_DEFAULT_ENV" != "behavior" ]] && { echo "ERROR: Failed to activate environment"; exit 1; }
+    [[ "$CONDA_DEFAULT_ENV" != "$ENV_NAME" ]] && { echo "ERROR: Failed to activate environment"; exit 1; }
     
     # Install numpy and setuptools via pip
     echo "Installing numpy and setuptools..."
@@ -228,7 +229,7 @@ if [ "$NEW_ENV" = true ]; then
     # Determine the CUDA version string for pip URL (e.g., cu126, cu124, etc.)
     CUDA_VER_SHORT=$(echo $CUDA_VERSION | sed 's/\.//g')  # e.g. convert 12.6 to 126
     
-    pip install torch==2.7.1 torchvision torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu${CUDA_VER_SHORT}
+    pip install torch==2.7.0 torchvision torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu${CUDA_VER_SHORT}
     echo "✓ PyTorch installation completed"
 fi
 # Install BDDL
@@ -245,7 +246,7 @@ if [ "$OMNIGIBSON" = true ]; then
     
     # Check Python version
     PYTHON_VERSION=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-    [ "$PYTHON_VERSION" != "3.10" ] && { echo "ERROR: Python 3.10 required, found $PYTHON_VERSION"; exit 1; }
+    [ "$PYTHON_VERSION" != "3.11" ] && { echo "ERROR: Python 3.11 required, found $PYTHON_VERSION"; exit 1; }
     
     # Check for conflicting environment variables
     if [[ -n "$EXP_PATH" || -n "$CARB_APP_PATH" || -n "$ISAAC_PATH" ]]; then
@@ -303,21 +304,21 @@ if [ "$OMNIGIBSON" = true ]; then
         install_isaac_packages() {
             local temp_dir=$(mktemp -d)
             local packages=(
-                "omniverse_kit-106.5.0.162521" "isaacsim_kernel-4.5.0.0" "isaacsim_app-4.5.0.0"
-                "isaacsim_core-4.5.0.0" "isaacsim_gui-4.5.0.0" "isaacsim_utils-4.5.0.0"
-                "isaacsim_storage-4.5.0.0" "isaacsim_asset-4.5.0.0" "isaacsim_sensor-4.5.0.0"
-                "isaacsim_robot_motion-4.5.0.0" "isaacsim_robot-4.5.0.0" "isaacsim_benchmark-4.5.0.0"
-                "isaacsim_code_editor-4.5.0.0" "isaacsim_ros1-4.5.0.0" "isaacsim_cortex-4.5.0.0"
-                "isaacsim_example-4.5.0.0" "isaacsim_replicator-4.5.0.0" "isaacsim_rl-4.5.0.0"
-                "isaacsim_robot_setup-4.5.0.0" "isaacsim_ros2-4.5.0.0" "isaacsim_template-4.5.0.0"
-                "isaacsim_test-4.5.0.0" "isaacsim-4.5.0.0" "isaacsim_extscache_physics-4.5.0.0"
-                "isaacsim_extscache_kit-4.5.0.0" "isaacsim_extscache_kit_sdk-4.5.0.0"
+                "omniverse_kit-107.3.1.206797" "isaacsim_kernel-5.1.0.0" "isaacsim_app-5.1.0.0"
+                "isaacsim_core-5.1.0.0" "isaacsim_gui-5.1.0.0" "isaacsim_utils-5.1.0.0"
+                "isaacsim_storage-5.1.0.0" "isaacsim_asset-5.1.0.0" "isaacsim_sensor-5.1.0.0"
+                "isaacsim_robot_motion-5.1.0.0" "isaacsim_robot-5.1.0.0" "isaacsim_benchmark-5.1.0.0"
+                "isaacsim_code_editor-5.1.0.0" "isaacsim_ros1-5.1.0.0" "isaacsim_cortex-5.1.0.0"
+                "isaacsim_example-5.1.0.0" "isaacsim_replicator-5.1.0.0" "isaacsim_rl-5.1.0.0"
+                "isaacsim_robot_setup-5.1.0.0" "isaacsim_ros2-5.1.0.0" "isaacsim_template-5.1.0.0"
+                "isaacsim_test-5.1.0.0" "isaacsim-5.1.0.0" "isaacsim_extscache_physics-5.1.0.0"
+                "isaacsim_extscache_kit-5.1.0.0" "isaacsim_extscache_kit_sdk-5.1.0.0"
             )
             
             local wheel_files=()
             for pkg in "${packages[@]}"; do
                 local pkg_name=${pkg%-*}
-                local filename="${pkg}-cp310-none-manylinux_2_34_x86_64.whl"
+                local filename="${pkg}-cp311-none-manylinux_2_35_x86_64.whl"
                 local url="https://pypi.nvidia.com/${pkg_name//_/-}/$filename"
                 local filepath="$temp_dir/$filename"
                 

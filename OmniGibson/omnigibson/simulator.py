@@ -71,6 +71,7 @@ m.INITIAL_SCENE_PRIM_Z_OFFSET = -100.0
 
 m.KIT_FILES = {
     (4, 5, 0): "omnigibson_4_5_0.kit",
+    (5, 1, 0): "omnigibson_5_1_0.kit",
 }
 
 
@@ -228,8 +229,47 @@ def _launch_app():
     launch_context = nullcontext if gm.DEBUG else SuppressLogsUntilError if gm.NO_OMNI_LOGS else suppress_omni_log
 
     with launch_context(None):
-        app = lazy.isaacsim.SimulationApp(config_kwargs, experience=str(kit_file_target.resolve(strict=True)))
+        with launch_context(None):
+            # --- 1. Configure for Kit 107 / RTX 5090 ---
+            config_kwargs.update(
+                {
+                    "headless": False,  # or True if you run headless
+                    "renderer": "RayTracedLighting",
+                    "omni.replicator.core.enabled": False,  # prevent auto-startup
+                    "width": 1280,
+                    "height": 720,
+                }
+            )
 
+            kit_path = str(kit_file_target.resolve(strict=True))
+            print(f"[OmniGibson Patch] Launching Isaac Sim from {kit_path}")
+
+            # --- 2. Create SimulationApp (initializes carb.log & message bus) ---
+            app = lazy.isaacsim.SimulationApp(config_kwargs, experience=kit_path)
+
+            # --- 3. Ensure logging/event bus initialized ---
+            # In Kit 107+, carb.log has no get_logger()
+            try:
+                if hasattr(lazy.carb.log, "setup_logging"):
+                    lazy.carb.log.setup_logging()
+                    print("[OmniGibson Patch] Initialized carb logging for Kit 107+.")
+                else:
+                    print("[OmniGibson Patch] carb.log already initialized.")
+            except Exception as e:
+                print(f"[OmniGibson Patch] Skipping carb.log setup: {e}")
+            if hasattr(lazy.omni.kit.app, "get_app_interface"):
+                _app_if = lazy.omni.kit.app.get_app_interface()
+                if hasattr(_app_if, "get_message_bus"):
+                    bus = _app_if.get_message_bus()
+                    if bus is None:
+                        print("[Warning] Message bus not ready yet — Replicator will stay disabled.")
+
+            # --- 4. (Optional) Manually start Replicator ---
+            try:
+                lazy.omni.replicator.core.initialize_kit_logging()  # required in Replicator ≥ 1.12
+                print("[OmniGibson Patch] Replicator manually initialized.")
+            except Exception as e:
+                print(f"[OmniGibson Patch] Skipping Replicator init: {e}")
     # Close the stage so that we can create a new one when a Simulator Instance is created
     assert lazy.isaacsim.core.utils.stage.close_stage()
 
@@ -265,10 +305,11 @@ def _launch_app():
             app.set_setting("/exts/omni.services.transport.server.http/port", gm.HTTP_PORT)
             app.set_setting("/exts/omni.kit.livestream.app/primaryStream/streamType", "webrtc")
             app.set_setting("/exts/omni.kit.livestream.app/primaryStream/signalPort", gm.WEBRTC_PORT)
+            lazy.isaacsim.core.utils.extensions.enable_extension("omni.services.transport.server.http")
             lazy.isaacsim.core.utils.extensions.enable_extension("omni.kit.livestream.webrtc")
 
-            #app.set_setting("/app/livestream/port", gm.WEBRTC_PORT)
-            #lazy.isaacsim.core.utils.extensions.enable_extension("omni.services.streamclient.webrtc")
+            # app.set_setting("/app/livestream/port", gm.WEBRTC_PORT)
+            # lazy.isaacsim.core.utils.extensions.enable_extension("omni.services.streamclient.webrtc")
             print(f"Now streaming on: http://{ip}:{gm.HTTP_PORT}/streaming/webrtc-client?server={ip}")
         else:
             raise ValueError(
@@ -1010,14 +1051,27 @@ def _launch_simulator(*args, **kwargs):
 
         def _refresh_physics_sim_view(self):
             SimulationManager = lazy.isaacsim.core.simulation_manager.SimulationManager
+
+            def _safe_dispatch(event_name, payload=None):
+                msg_bus = SimulationManager._message_bus
+                payload = payload or {}
+                if hasattr(msg_bus, "dispatch"):
+                    msg_bus.dispatch(event_name, payload=payload)
+                elif hasattr(msg_bus, "post_event"):
+                    msg_bus.post_event(event_name, payload=payload)
+                elif hasattr(msg_bus, "push_event"):
+                    msg_bus.push_event(event_name, payload=payload)
+                else:
+                    print(f"[Warning] Could not send event '{event_name}': no valid dispatcher method found.")
+
             IsaacEvents = lazy.isaacsim.core.simulation_manager.IsaacEvents
 
             SimulationManager._physics_sim_view = lazy.omni.physics.tensors.create_simulation_view(
                 SimulationManager._backend
             )
             SimulationManager._physics_sim_view.set_subspace_roots("/")
-            SimulationManager._message_bus.dispatch(IsaacEvents.SIMULATION_VIEW_CREATED.value, payload={})
-            SimulationManager._message_bus.dispatch(IsaacEvents.PHYSICS_READY.value, payload={})
+            _safe_dispatch(IsaacEvents.SIMULATION_VIEW_CREATED.value, payload={})
+            _safe_dispatch(IsaacEvents.PHYSICS_READY.value, payload={})
 
         def update_handles(self):
             # Handles are only relevant when physx is running
