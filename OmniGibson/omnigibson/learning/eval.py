@@ -184,6 +184,7 @@ class Evaluator:
             6. Returns the termination and truncation status.
         """
         self.robot_action = self.policy.forward(obs=self.obs)
+        
 
         obs, _, terminated, truncated, info = self.env.step(self.robot_action, n_render_iterations=1)
         # process obs
@@ -404,8 +405,30 @@ if __name__ == "__main__":
                 # run metric start callbacks
                 for metric in evaluator.metrics:
                     metric.start_callback(evaluator.env)
+                    
+                actions = {
+                    "base": [],
+                    "torso":[],
+                    "ee_left_lin_delta": [],
+                     "ee_left_ang_delta": [], 
+                    "left_gripper": [],
+                    "ee_right_lin_delta": [], 
+                    "ee_right_ang_delta": [],
+                    "right_gripper": []
+                }
+                # obs = []
                 while not done:
+                    # obs.append(evaluator.obs)
                     terminated, truncated = evaluator.step()
+                    actions["base"].append(evaluator.robot_action[0, :3].tolist())
+                    actions["torso"].append(evaluator.robot_action[0, 3:7].tolist())
+                    actions["ee_left_lin_delta"].append(evaluator.robot_action[0, 7:10].tolist())
+                    actions["ee_left_ang_delta"].append(evaluator.robot_action[0, 10:13].tolist())
+                    actions["left_gripper"].append(float(evaluator.robot_action[0, 13]))
+                    actions["ee_right_lin_delta"].append(evaluator.robot_action[0, 14:17].tolist())
+                    actions["ee_right_ang_delta"].append(evaluator.robot_action[0, 17:20].tolist())
+                    actions["right_gripper"].append(float(evaluator.robot_action[0, 20]))
+                    
                     if terminated or truncated:
                         done = True
                     if config.write_video:
@@ -424,6 +447,48 @@ if __name__ == "__main__":
                     metrics.update(metric.gather_results())
                 with open(metrics_path / f"{config.task.name}::{idx}::{epi}.json", "w") as f:
                     json.dump(metrics, f)
+                
+                with open(metrics_path / f"{config.task.name}_action::{idx}::{epi}.json", "w") as f:
+                    json.dump(actions, f)
+                # Create a figure and axis array for a 4x2 subplot grid
+                fig, axes = plt.subplots(nrows=4, ncols=2, figsize=(15, 20), sharex=True)
+
+                # Flatten the array of axes for easy iteration
+                axes = axes.flatten()
+                order_of_keys = [
+                    "base",
+                    "torso",
+                    "ee_left_lin_delta",
+                    "ee_right_lin_delta",
+                    "ee_left_ang_delta",
+                    "ee_right_ang_delta",
+                    "left_gripper",
+                    "right_gripper",
+                ]
+                # Plot data for each key
+                for ax, key in zip(axes, order_of_keys):
+                    values = actions[key]
+                    if isinstance(values, list) and all(isinstance(item, (int, float)) for item in values):
+                        ax.plot(values, label=key, color='orange')
+                        ax.set_title(key, fontsize=10)
+                    else:
+                        vals = np.array(values)
+                        for i in range(vals.shape[1]):
+                            ax.plot(vals[:, i], label=f"{key}_{i+1}")
+                        ax.set_title(key, fontsize=10)
+
+                    ax.grid()
+                    ax.legend(loc='upper right', fontsize=8, bbox_to_anchor=(1.05, 1), borderaxespad=0.)
+
+                # Common x label
+                plt.xlabel('Time Steps', fontsize=12)
+                plt.tight_layout()
+
+
+                # Save the figure with high resolution
+                plt.savefig(f"{config.task.name}_action::{idx}::{epi}.svg", format="svg", dpi=300)
+                plt.close(fig)  # Close the figure to free memory
+
                 # reset video writer
                 if config.write_video:
                     evaluator.video_writer = None
