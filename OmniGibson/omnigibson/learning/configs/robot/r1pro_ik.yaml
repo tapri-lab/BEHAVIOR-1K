@@ -24,19 +24,29 @@ controllers:  # Can be overwritten by policy
     vel_kp: 150
     command_input_limits: default
     command_output_limits: default
-    use_impedances: false
+    use_impedances: true
   trunk:
     name: JointController
     motor_type: position
     pos_kp: 150
     command_input_limits: default
     command_output_limits: default
-    use_impedances: false
+    use_impedances: true
     use_delta_commands: false
   arm_left:
     name: InverseKinematicsController
+    mode: pose_delta_ori
+    use_impedances: true
+    condition_on_current_position: true
+    vel_kp: 2
+    #pos_damping_ratio: 50
+    #smoothing_filter_size: 50
   arm_right:
     name: InverseKinematicsController
+    mode: pose_delta_ori
+    use_impedances: true
+    condition_on_current_position: true
+    vel_kp: 2
   gripper_left:
     name: MultiFingerGripperController
     mode: smooth
